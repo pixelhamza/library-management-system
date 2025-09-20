@@ -8,4 +8,8 @@ urlpatterns=[
     #this for routing the crud endpoints
     path('books/',views.BookListCreate.as_view(),name='book-create-get'),
     path('books/<int:pk>/',views.BookGetUpdateDelete.as_view(),name ='book-update-del'),
+    path('books/<int:pk>/borrow/',views.BorrowBook.as_view(),name="borrow-book"),
+    path('borrowed-books/', views.BorrowedBookList.as_view(), name='borrowed-books'),
+
+    path('books/<int:pk>/borrow/', views.BorrowBook.as_view(), name='borrow-book'),
 ]

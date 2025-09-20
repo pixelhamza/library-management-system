@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Book
+from .models import Book,BorrowedBook
 from django.contrib.auth.models import User
 class BookSerializer(serializers.ModelSerializer):
     added_by = serializers.ReadOnlyField(source='added_by.username')
@@ -19,3 +19,10 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self,validated_data):
         user=User.objects.create_user(**validated_data)
         return user
+class BorrowedBookSerializer(serializers.ModelSerializer):
+    book = BookSerializer()
+    borrowed_by = serializers.ReadOnlyField(source='borrowed_by.username')
+
+    class Meta:
+        model = BorrowedBook
+        fields = '__all__'
