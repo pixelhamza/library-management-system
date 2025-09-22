@@ -5,28 +5,29 @@ import './App.css';
 const API_URL = 'http://127.0.0.1:8000';
 
 function App() {
-  //we handle out auth here
+  // Authentication State
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [token, setToken] = useState(null);
 
-  // im fina make all the states i need now
+  // Book Management State
   const [books, setBooks] = useState([]);
-  const [borrowedBooks, setBorrowedBooks] = useState([]); 
-  const [newBook, setNewBook] = useState({ 
-    title: '', 
-    author: '', 
-    category: '', 
-    isbn: '', 
-    published_date: '', 
-    available_copies: '' 
+  const [borrowedBooks, setBorrowedBooks] = useState([]);
+  const [mostBorrowedBooks, setMostBorrowedBooks] = useState([]); // New state for most borrowed books
+  const [newBook, setNewBook] = useState({
+    title: '',
+    author: '',
+    category: '',
+    isbn: '',
+    published_date: '',
+    available_copies: ''
   });
   const [editingBookId, setEditingBookId] = useState(null);
   const [loading, setLoading] = useState(false);
 
- 
+  // Pagination and Search State
   const [searchQuery, setSearchQuery] = useState('');
   const [nextPageUrl, setNextPageUrl] = useState(null);
   const [prevPageUrl, setPrevPageUrl] = useState(null);
@@ -38,6 +39,7 @@ function App() {
       setIsLoggedIn(true);
       fetchBooks(`${API_URL}/books/`, storedToken);
       fetchBorrowedBooks(storedToken);
+      fetchMostBorrowedBooks(storedToken); // Fetch most borrowed books on load
     }
   }, []);
 
@@ -66,16 +68,29 @@ function App() {
   };
 
   const fetchBorrowedBooks = async (authToken) => {
-      try {
-          const response = await axios.get(`${API_URL}/borrowed-books/`, { // Assume a new endpoint for this
-              headers: {
-                  Authorization: `Token ${authToken}`,
-              },
-          });
-          setBorrowedBooks(response.data);
-      } catch (error) {
-          console.error('Failed to fetch borrowed books:', error);
-      }
+    try {
+      const response = await axios.get(`${API_URL}/borrowed-books/`, {
+        headers: {
+          Authorization: `Token ${authToken}`,
+        },
+      });
+      setBorrowedBooks(response.data);
+    } catch (error) {
+      console.error('Failed to fetch borrowed books:', error);
+    }
+  };
+  
+  const fetchMostBorrowedBooks = async (authToken) => {
+    try {
+      const response = await axios.get(`${API_URL}/most-borrowed/`, {
+        headers: {
+          Authorization: `Token ${authToken}`,
+        },
+      });
+      setMostBorrowedBooks(response.data);
+    } catch (error) {
+      console.error('Failed to fetch most borrowed books:', error);
+    }
   };
 
   const handleLogin = async (e) => {
@@ -89,6 +104,7 @@ function App() {
       localStorage.setItem('token', receivedToken);
       fetchBooks(`${API_URL}/books/`, receivedToken);
       fetchBorrowedBooks(receivedToken);
+      fetchMostBorrowedBooks(receivedToken);
     } catch (error) {
       console.error('Login failed:', error);
       alert('Login failed. Please check your credentials.');
@@ -118,6 +134,7 @@ function App() {
     localStorage.removeItem('token');
     setBooks([]);
     setBorrowedBooks([]);
+    setMostBorrowedBooks([]);
   };
 
   const handleCreateOrUpdate = async (e) => {
@@ -125,7 +142,8 @@ function App() {
     setLoading(true);
     try {
       if (editingBookId) {
-        await axios.put(`${API_URL}/admin/books/${editingBookId}/`, newBook, {
+        
+        await axios.put(`${API_URL}/books/${editingBookId}/`, newBook, {
           headers: {
             Authorization: `Token ${token}`,
           },
@@ -133,7 +151,8 @@ function App() {
         setEditingBookId(null);
         alert('Book updated successfully!');
       } else {
-        await axios.post(`${API_URL}/admin/books/`, newBook, {
+        
+        await axios.post(`${API_URL}/books/`, newBook, {
           headers: {
             Authorization: `Token ${token}`,
           },
@@ -150,13 +169,14 @@ function App() {
     }
   };
 
-  const handleDelete = async (bookId) => {
+const handleDelete = async (bookId) => {
     if (!window.confirm('Are you sure you want to delete this book?')) {
       return;
     }
     setLoading(true);
     try {
-      await axios.delete(`${API_URL}/admin/books/${bookId}/`, {
+      
+      await axios.delete(`${API_URL}/books/${bookId}/`, {
         headers: {
           Authorization: `Token ${token}`,
         },
@@ -181,8 +201,9 @@ function App() {
               },
           });
           alert('Book borrowed successfully!');
-          fetchBooks(`${API_URL}/books/`, token); 
+          fetchBooks(`${API_URL}/books/`, token);
           fetchBorrowedBooks(token);
+          fetchMostBorrowedBooks(token);
       } catch (error) {
           console.error('Failed to borrow book:', error);
           alert('Failed to borrow book. Check for available copies.');
@@ -235,7 +256,7 @@ function App() {
               </form>
             </div>
           </div>
-          
+
           <div className="book-list">
             <h2>Public Book Catalog</h2>
             {loading ? <p>Loading books...</p> : (
@@ -277,6 +298,22 @@ function App() {
                 </ul>
             )}
           </div>
+          
+          <div className="most-borrowed-books">
+            <h2>Most Borrowed Books</h2>
+            {mostBorrowedBooks.length === 0 ? (
+                <p>No books have been borrowed yet.</p>
+            ) : (
+                <ul>
+                    {mostBorrowedBooks.map((book) => (
+                        <li key={book.id}>
+                            <strong>{book.title}</strong> by {book.author}
+                            <p>Total Borrows: {book.total_borrows || 0}</p>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
         </div>
       )}
     </div>

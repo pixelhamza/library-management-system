@@ -22,7 +22,17 @@ class UserSerializer(serializers.ModelSerializer):
 class BorrowedBookSerializer(serializers.ModelSerializer):
     book = BookSerializer()
     borrowed_by = serializers.ReadOnlyField(source='borrowed_by.username')
+    total_borrows = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = BorrowedBook
+        fields = '__all__'
+
+class MostBorrowedBooksSerializer(serializers.ModelSerializer):
+    
+    added_by = serializers.ReadOnlyField(source='added_by.username')
+    total_borrows = serializers.IntegerField(read_only=True)
+    
+    class Meta: 
+        model = Book
         fields = '__all__'

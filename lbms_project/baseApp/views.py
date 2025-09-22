@@ -1,21 +1,21 @@
-from django.shortcuts import render
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
-from rest_framework import generics,permissions,filters,status
+from rest_framework import generics, permissions, filters, status
 from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth.models import User
-from .serializers import UserSerializer,BookSerializer,BorrowedBookSerializer
-from .models import Book,BorrowedBook
 from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
+from .models import Book, BorrowedBook
+from .serializers import UserSerializer, BookSerializer, BorrowedBookSerializer,MostBorrowedBooksSerializer
+from django.db.models import Count
+from django.utils.decorators import method_decorator
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny] 
 
-# this to handle user login and the use of token. this was  a bit new stuff for me just learned proper auth...
 class CustomObtainAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
@@ -24,21 +24,24 @@ class CustomObtainAuthToken(ObtainAuthToken):
         return Response({
             'token': token.key,
             'user_id': user.pk, 
-            'username': user.username
+            'username': user.username,
         })
+
 class StandardResultsSetPagination(PageNumberPagination):
     page_size=10
     page_query_param='page_size'
     max_page_size=100
 
-#this handles GET to show all the books and i have implemented paginaton for ease view and filtering too 
+
 class BookListCreate(generics.ListCreateAPIView):
-    queryset = Book.objects.all()
+    queryset = Book.objects.all().order_by('id')
     serializer_class = BookSerializer
+  
+
     permission_classes = [permissions.IsAuthenticated]
     
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['title', 'author', 'category', 'isbn'] #the optional search by i implemented , lowkey easy
+    search_fields = ['title', 'author', 'category', 'isbn']
     ordering_fields = ['title', 'author', 'published_date', 'available_copies'] 
    
     pagination_class = StandardResultsSetPagination
@@ -46,26 +49,23 @@ class BookListCreate(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(added_by=self.request.user)
 
-        
-#generic api view to handle PUT,DELETE,GET.i went for generic instead of decorators cuz i thought it was more professional and industry ready
+
+
 class BookGetUpdateDelete(generics.RetrieveUpdateDestroyAPIView): 
     queryset=Book.objects.all()
     serializer_class=BookSerializer
     permission_classes=[permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return Book.objects.filter(added_by=self.request.user)
-    
 class BorrowBook(APIView):
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
-    def post(self,request,pk,format=None):
-        book=get_object_or_404(Book,pk=pk)
-        user=request.user
+    def post(self, request, pk, format=None):
+        book = get_object_or_404(Book, pk=pk)
+        user = request.user
         
-        if book.available_copies>0:
-            BorrowedBook.objects.create(book=book,borrowed_by=user)
-            book.available_copies-=1
+        if book.available_copies > 0:
+            BorrowedBook.objects.create(book=book, borrowed_by=user)
+            book.available_copies -= 1
             book.save()
             return Response({'message':"YEAYY!! You Borrowed the book Sucessfully"},status=status.HTTP_200_OK)
         else: 
@@ -76,9 +76,18 @@ class BorrowedBookList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        
         return BorrowedBook.objects.filter(borrowed_by=self.request.user)
-   
+    
+    #query for most borrowed
+class MostBorrowedBooksView(generics.ListAPIView):
+    serializer_class=MostBorrowedBooksSerializer
+    
+    def get_queryset(self):
+        queryset = Book.objects.annotate(
+            
+            total_borrows=Count('borrowed')
+        ).order_by('-total_borrows')[:3]
+        return queryset
 
 
 
