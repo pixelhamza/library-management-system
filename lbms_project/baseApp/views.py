@@ -9,8 +9,7 @@ from django.shortcuts import get_object_or_404
 from .models import Book, BorrowedBook
 from .serializers import UserSerializer, BookSerializer, BorrowedBookSerializer,MostBorrowedBooksSerializer
 from django.db.models import Count
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
+
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -46,7 +45,7 @@ class BookListCreate(generics.ListCreateAPIView):
     ordering_fields = ['title', 'author', 'published_date', 'available_copies'] 
    
     pagination_class = StandardResultsSetPagination
-    @method_decorator(cache_page(60*15))
+
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 

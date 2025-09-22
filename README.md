@@ -36,7 +36,7 @@ This project is a full-stack application for managing a library's book catalog. 
 
 The following are features that I understand but were not implemented due to time constraints. For a production-ready application, these would be the next steps:
 
-* **Caching BY REDIS**: IMPLEMENTED LOCAL CACHING USING BUILT IN DJANGO LIB. Can use redis for future
+* **Caching BY REDIS**:  Can use redis for future
 
 * **Rate Limiting**: i will use token bucket algo to avoid user to make too many request
 
@@ -64,7 +64,8 @@ To run the project locally, you will need **Docker** and **Docker Compose** inst
 * Run npm install to install dependencies.
 * Run npm run dev to start the development server
 
-
+note : the backend works correctly 0 to 100 but there might be some bugs on the frontend (im more of a backend dev)
+so please ignore those. 
 
 
 
