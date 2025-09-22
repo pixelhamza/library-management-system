@@ -46,13 +46,13 @@ function App() {
   const fetchBooks = async (url, authToken) => {
     setLoading(true);
     try {
+      const isSearchRequest = url.includes('search');
+      
       const response = await axios.get(url, {
         headers: {
           Authorization: `Token ${authToken}`,
         },
-        params: {
-          search: searchQuery,
-        },
+        params: isSearchRequest ? { search: searchQuery } : {},
       });
       setBooks(response.data.results || response.data);
       setNextPageUrl(response.data.next);
@@ -277,9 +277,9 @@ const handleDelete = async (bookId) => {
                   ))}
                 </ul>
                 <div className="pagination-controls">
-                  <button onClick={() => fetchBooks(prevPageUrl, token)} disabled={!prevPageUrl}>Previous</button>
-                  <button onClick={() => fetchBooks(nextPageUrl, token)} disabled={!nextPageUrl}>Next</button>
-                </div>
+                  <button onClick={() => fetchBooks(prevPageUrl, token, searchQuery)} disabled={!prevPageUrl}>Previous</button>
+                  <button onClick={() => fetchBooks(nextPageUrl, token, searchQuery)} disabled={!nextPageUrl}>Next</button>
+               </div>
               </>
             )}
           </div>
