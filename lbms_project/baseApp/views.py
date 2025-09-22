@@ -9,7 +9,6 @@ from django.shortcuts import get_object_or_404
 from .models import Book, BorrowedBook
 from .serializers import UserSerializer, BookSerializer, BorrowedBookSerializer,MostBorrowedBooksSerializer
 from django.db.models import Count
-from django.utils.decorators import method_decorator
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
