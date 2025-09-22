@@ -46,13 +46,13 @@ function App() {
   const fetchBooks = async (url, authToken) => {
     setLoading(true);
     try {
-      const isSearchRequest = url.includes('search');
-      
       const response = await axios.get(url, {
         headers: {
           Authorization: `Token ${authToken}`,
         },
-        params: isSearchRequest ? { search: searchQuery } : {},
+        params: {
+          search: searchQuery, 
+        },
       });
       setBooks(response.data.results || response.data);
       setNextPageUrl(response.data.next);
@@ -246,14 +246,14 @@ const handleDelete = async (bookId) => {
             <div className="book-form">
               <h2>{editingBookId ? 'Edit Book' : 'Add New Book'}</h2>
               <form onSubmit={handleCreateOrUpdate}>
-                <input type="text" placeholder="Title" value={newBook.title} onChange={(e) => setNewBook({ ...newBook, title: e.target.value })} required />
-                <input type="text" placeholder="Author" value={newBook.author} onChange={(e) => setNewBook({ ...newBook, author: e.target.value })} required />
-                <input type="text" placeholder="Category" value={newBook.category} onChange={(e) => setNewBook({ ...newBook, category: e.target.value })} required />
-                <input type="text" placeholder="ISBN" value={newBook.isbn} onChange={(e) => setNewBook({ ...newBook, isbn: e.target.value })} required />
-                <input type="date" placeholder="Published Date" value={newBook.published_date} onChange={(e) => setNewBook({ ...newBook, published_date: e.target.value })} required />
-                <input type="number" placeholder="Available Copies" value={newBook.available_copies} onChange={(e) => setNewBook({ ...newBook, available_copies: e.target.value })} required />
-                <button type="submit">{loading ? 'Loading...' : (editingBookId ? 'Update Book' : 'Add Book')}</button>
-              </form>
+               <input type="text" placeholder="Title" value={newBook.title} onChange={(e) => setNewBook({ ...newBook, title: e.target.value })} required />
+    <input type="text" placeholder="Author" value={newBook.author} onChange={(e) => setNewBook({ ...newBook, author: e.target.value })} required />
+    <input type="text" placeholder="Category" value={newBook.category} onChange={(e) => setNewBook({ ...newBook, category: e.target.value })} required />
+    <input type="text" placeholder="ISBN" value={newBook.isbn} onChange={(e) => setNewBook({ ...newBook, isbn: e.target.value })} minLength="10" maxLength="13" required />
+    <input type="date" placeholder="Published Date" value={newBook.published_date} onChange={(e) => setNewBook({ ...newBook, published_date: e.target.value })} required />
+    <input type="number" placeholder="Available Copies" value={newBook.available_copies} onChange={(e) => setNewBook({ ...newBook, available_copies: e.target.value })} min="1" required />
+    <button type="submit">{loading ? 'Loading...' : (editingBookId ? 'Update Book' : 'Add Book')}</button>
+</form>
             </div>
           </div>
 
